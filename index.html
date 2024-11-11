@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Twitter Clone - Final</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+      integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <!-- sidebar starts -->
+    <div class="sidebar">
+      <i class="fab fa-twitter"></i>
+      <div class="sidebarOption active">
+        <span class="material-icons"> home </span>
+        <h2>Home</h2>
+      </div>
+
+      <div class="sidebarOption">
+        <span class="material-icons"> perm_identity </span>
+        <h2 onclick="connectWallet()">Connect to wallet</h2>
+      </div>
+    </div>
+    <!-- sidebar ends -->
+
+    <!-- feed starts -->
+    <div class="feed">
+      <div class="feed__header">
+        <h2>Salma's mini twitter <3 </h2>
+      </div>
+
+      <!-- tweetbox starts -->
+      <div class="tweetBox">
+        <form>
+          <div class="tweetbox__input">
+            <img
+              src="https://i.pinimg.com/originals/a6/58/32/a65832155622ac173337874f02b218fb.png"
+              alt=""
+            />
+		<input id="postMessage" type="text" placeholder="What's happening?" />
+          </div>
+		  <button type="button" onclick="publishPost()" class="tweetBox__tweetButton">Tweet</button>
+        </form>
+      </div>
+      <!-- tweetbox ends -->
+
+      <!-- post starts -->
+      <div id="feedPosts" class="post">
+      </div>
+      <!-- post ends -->
+    </div>
+    <!-- feed ends -->
+
+    <!-- widgets starts -->
+	<div class="widgets">
+		<div class="widgets__widgetContainer">
+		  <h2>Your posts</h2>
+		  <!-- This section will be dynamically populated by your posts -->
+		</div>
+	  </div>	  
+    <!-- widgets ends -->
+    <!-- Place the script at the end of the body -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script>
+        let web3;
+        let account;
+        const contractAddress = "0x538D2755B5Fb9A4f7c5769bdcf5103E569D6E241"; // Replace with your deployed contract address
+        const contractABI = 
+		[
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "dislikePost",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "likePost",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_newMessage",
+				"type": "string"
+			}
+		],
+		"name": "modifyPost",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_message",
+				"type": "string"
+			}
+		],
+		"name": "publishPost",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "removeDislike",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "removeLike",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "getPost",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getTotalPosts",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "posts",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "message",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "author",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "likes",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "dislikes",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "createdAt",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "modifiedAt",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+
+];
+
+        let miniSocial;
+        // Connect to the wallet function
+        async function connectWallet() {
+            if (window.ethereum) {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    web3 = new Web3(window.ethereum);
+                    const accounts = await web3.eth.getAccounts();
+                    account = accounts[0];
+                    miniSocial = new web3.eth.Contract(contractABI, contractAddress);
+                    loadFeed();
+                    alert("Connecté avec succès : " + account);
+                } catch (error) {
+                    console.error("Erreur lors de la connexion : ", error);
+                }
+            } else {
+                alert("Veuillez installer MetaMask!");
+            }
+        }
+
+        // Publish a post function
+		async function publishPost() {
+		const message = document.getElementById('postMessage').value;
+		if (message) {
+			try {
+				const receipt = await miniSocial.methods.publishPost(message).send({
+					from: account,
+					gas: 2000000, // Gas limit
+					gasPrice: web3.utils.toWei('20', 'gwei') // Gas price in gwei
+				});
+				console.log('Transaction successful', receipt);
+				alert('Post published!');
+				loadFeed();
+			} catch (error) {
+				console.error('Error publishing post:', error);
+				alert('Failed to publish post. Please check MetaMask logs.');
+			}
+		} else {
+			alert('Please enter a message.');
+    }
+}
+
+
+
+async function loadFeed() {
+    const feedPosts = document.getElementById("feedPosts");
+    const yourPostsContainer = document.querySelector(".widgets__widgetContainer"); // Get the "Your posts" widget
+    feedPosts.innerHTML = ""; // Clear previous posts
+
+    const totalPosts = await miniSocial.methods.getTotalPosts().call();
+    let yourPosts = ""; // Store the posts for the author
+    let otherPosts = ""; // Store the posts for other users
+
+    for (let i = 0; i < totalPosts; i++) {
+        const post = await miniSocial.methods.getPost(i).call();
+        const isAuthor = post[1].toLowerCase() === account.toLowerCase();
+
+        // Convert timestamps to readable dates
+        const createdAt = new Date(post[4] * 1000).toLocaleString(); // Date de création
+        const modifiedAt = post[5] > 0 ? new Date(post[5] * 1000).toLocaleString() : 'Non modifié'; // Date de modification
+
+        // Create the HTML structure for each post
+        const postHTML = `
+            <div class="post">
+                <div class="post__avatar">
+                    <img
+                        src="https://i.pinimg.com/originals/a6/58/32/a65832155622ac173337874f02b218fb.png"
+                        alt="Avatar"
+                    />
+                </div>
+                <div class="post__body">
+                    <div class="post__header">
+                        <div class="post__headerText">
+                            <h3>
+                                ${post[1]} <!-- User who posted -->
+                                <span class="post__headerSpecial">
+                                    <span class="material-icons post__badge"> verified </span>@user
+                                </span>
+                            </h3>
+                        </div>
+                        <div class="post__headerDescription">
+                            <p>${post[0]}</p> <!-- Post message -->
+                        </div>
+                    </div>
+
+                    <div class="post__footer">
+                        <button class="tweetBox__tweetButton1" onclick="likePost(${i})">Like</button>
+                        <button class="tweetBox__tweetButton1" onclick="removeLike(${i})">Remove Like</button>
+                        <button class="tweetBox__tweetButton1" onclick="dislikePost(${i})">Dislike</button>
+                        <button class="tweetBox__tweetButton1" onclick="removeDislike(${i})">Remove Dislike</button>
+                        ${isAuthor ? `<button class="tweetBox__tweetButton1" onclick="modifyPost(${i})">Modify</button>` : ""}
+                    </div>
+                    <p class="post_text">Likes: ${post[2]} Dislikes: ${post[3]}</p>
+                    <p class="post_text">Créé le : ${createdAt}</p>
+                    <p class="post_text">Modifié le : ${modifiedAt}</p>
+                </div>
+            </div>
+            <hr>`;
+
+        // Add the post to the correct section
+        if (isAuthor) {
+            yourPosts += postHTML; // Add to 'Your posts' section
+        } else {
+            otherPosts += postHTML; // Add to the general feed
+        }
+    }
+
+    // Display 'Your posts' widget if there are any posts by the logged-in user
+    if (yourPosts) {
+        yourPostsContainer.innerHTML = `
+            <h2>Your Posts</h2>
+            ${yourPosts}
+        `;
+    } else {
+        yourPostsContainer.innerHTML = `
+            <h2>No Posts Yet</h2>
+        `;
+    }
+
+    // Display all other posts in the feed
+    feedPosts.innerHTML = otherPosts;
+}
+
+
+
+
+        // Like post function
+        async function likePost(index) {
+            try {
+                await miniSocial.methods.likePost(index).send({ from: account });
+                loadFeed();
+            } catch (error) {
+                alert("Erreur: " + error.message);
+            }
+        }
+
+        // Remove like function
+        async function removeLike(index) {
+            try {
+                await miniSocial.methods.removeLike(index).send({ from: account });
+                loadFeed();
+            } catch (error) {
+                alert("Erreur: " + error.message);
+            }
+        }
+
+        // Dislike post function
+        async function dislikePost(index) {
+            try {
+                await miniSocial.methods.dislikePost(index).send({ from: account });
+                loadFeed();
+            } catch (error) {
+                alert("Erreur: " + error.message);
+            }
+        }
+
+        // Remove dislike function
+        async function removeDislike(index) {
+            try {
+                await miniSocial.methods.removeDislike(index).send({ from: account });
+                loadFeed();
+            } catch (error) {
+                alert("Erreur: " + error.message);
+            }
+        }
+
+        // Modify post function
+        async function modifyPost(index) {
+            const newMessage = prompt("Modifier votre message :");
+            if (newMessage) {
+                await miniSocial.methods.modifyPost(index, newMessage).send({ from: account });
+                loadFeed();
+            }
+        }
+		// Change user function
+		async function changeUser() {
+    if (window.ethereum) {
+        try {
+            // Demander à MetaMask de se reconnecter pour changer de compte
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const accounts = await web3.eth.getAccounts();
+            account = accounts[0];  // Mise à jour de l'adresse du compte
+            alert("Compte changé avec succès : " + account);
+            loadFeed(); // Recharger le fil d'actualité pour refléter les changements
+        } catch (error) {
+            console.error("Erreur lors du changement de compte : ", error);
+        }
+    } else {
+        alert("Veuillez installer MetaMask!");
+    }
+}
+
+	
+
+    </script>
+</body>
+</html>
